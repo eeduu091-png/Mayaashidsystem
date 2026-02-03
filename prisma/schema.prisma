@@ -1,0 +1,93 @@
+// Mayaash Communication Limited - ID Card System
+// Database Schema for Employee Management System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Admin accounts with enhanced security
+model Admin {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String    // Bcrypt hashed
+  lastLoginAt     DateTime?
+  failedAttempts  Int       @default(0)
+  lockedUntil     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([email])
+}
+
+// Worker/Employee records
+model Worker {
+  id          String    @id @default(cuid())
+  idNumber    String    @unique
+  name        String
+  phoneNumber String
+  territory   String
+  region      String
+  role        String    @default("Brand Ambassador") // Team Leader or Brand Ambassador
+  team        String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([idNumber])
+  @@index([name])
+  @@index([territory])
+}
+
+// Territory management
+model Territory {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  regionId  String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Region management
+model Region {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Download codes for ID card access
+model DownloadCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  expiryDays  Int       // 7, 30, 60, or 90
+  expiresAt   DateTime
+  isUsed      Boolean   @default(false)
+  usedAt      DateTime?
+  createdBy   String?   // Admin email
+  createdAt   DateTime  @default(now())
+
+  @@index([code])
+}
+
+// Payment records
+model Payment {
+  id                String    @id @default(cuid())
+  merchantRef       String    @unique
+  phoneNumber       String
+  amount            Float     @default(50)
+  status            String    @default("pending") // pending, completed, failed
+  mpesaReceipt      String?
+  transactionDate   DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([merchantRef])
+  @@index([phoneNumber])
+}
